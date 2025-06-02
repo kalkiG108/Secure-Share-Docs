@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureShare Docs - Secure Document Sharing</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-shield-alt"></i>
+                <span>SecureShare Docs</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item d-lg-flex align-items-lg-center">
+                        <a href="login.html" class="btn btn-login w-100 w-lg-auto mb-2 mb-lg-0">Login</a>
+                        <a href="register.html" class="btn btn-register w-100 w-lg-auto">Register</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Welcome to SecureShare</h1>
+            <p class="lead mb-4">A secure platform for managing and sharing your government documents</p>
+            <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+                <a href="register.html" class="btn btn-register btn-lg px-4 gap-3">Get Started</a>
+                <a href="login.html" class="btn btn-login btn-lg px-4">Sign In</a>
+            </div>
+        </div>
+        </section>
+
+    <!-- Features Section -->
+    <section class="features py-5 bg-light">
+        <div class="container">
+            <h2 class="text-center mb-5">Key Features</h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="fas fa-shield-alt fa-3x mb-3 text-primary"></i>
+                            <h3 class="card-title h4">Secure Storage</h3>
+                            <p class="card-text">Your documents are encrypted and stored securely</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="fas fa-share-alt fa-3x mb-3 text-primary"></i>
+                            <h3 class="card-title h4">Easy Sharing</h3>
+                            <p class="card-text">Share documents with other users securely</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="fas fa-file-alt fa-3x mb-3 text-primary"></i>
+                            <h3 class="card-title h4">Document Management</h3>
+                            <p class="card-text">Upload, view, and manage your documents easily</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p class="mb-0">&copy; 2023 SecureShare Docs. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script>
+        // Add click handlers to all feature cards
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('click', () => {
+                const toast = document.createElement('div');
+                toast.className = 'toast toast-notification align-items-center text-white position-fixed';
+                toast.style.top = '1rem';
+                toast.style.right = '1rem';
+                toast.style.zIndex = '1070';
+                toast.setAttribute('role', 'alert');
+                toast.setAttribute('aria-live', 'assertive');
+                toast.setAttribute('aria-atomic', 'true');
+                
+                toast.innerHTML = `
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fas fa-lock me-2"></i>Please login to access this feature
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                `;
+                
+                document.body.appendChild(toast);
+                const bsToast = new bootstrap.Toast(toast, {
+                    animation: true,
+                    autohide: true,
+                    delay: 3000
+                });
+                bsToast.show();
+                
+                // Remove toast from DOM after it's hidden
+                toast.addEventListener('hidden.bs.toast', () => {
+                    toast.remove();
+                });
+            });
+        });
+    </script>
+</body>
+</html>

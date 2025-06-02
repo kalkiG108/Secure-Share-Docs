@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SecureShare Docs</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Responsive icon sizes */
+        .action-icon {
+            font-size: 0.875rem; /* Default size for mobile */
+        }
+        
+        /* Medium screens */
+        @media (min-width: 768px) {
+            .action-icon {
+                font-size: 1rem;
+            }
+        }
+        
+        /* Large screens */
+        @media (min-width: 992px) {
+            .action-icon {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* Extra large screens */
+        @media (min-width: 1200px) {
+            .action-icon {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* Adjust button padding based on icon size */
+        .action-btn {
+            padding: 0.25rem 0.5rem;
+        }
+        
+        @media (min-width: 768px) {
+            .action-btn {
+                padding: 0.375rem 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body class="dashboard-body">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="dashboard.html">
+                <i class="fas fa-shield-alt me-2"></i>SecureShare Docs
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="dashboard.html">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="fullPageUploadBtn">
+                            <i class="fas fa-upload me-1"></i>Upload Document
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown">
+                            <img src="images/default-avatar.svg" alt="Profile" class="rounded-circle me-2" id="profileAvatar" style="width: 30px; height: 30px;">
+                            <span id="userFullName">John Doe</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="profile.html">
+                                    <i class="fas fa-user me-2"></i>Profile
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#" id="logoutBtn">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container container-fluid px-3 px-md-4 mt-5 pt-4 pt-md-4">
+        <div class="row mt-4">
+            <div class="col-12">
+                <!-- Title and Actions -->
+                <div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
+                    <h1 class="h2 mb-0">My Documents</h1>
+                    <div class="d-flex gap-2">
+                        <div class="dropdown d-inline-block">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-filter"></i>
+                                <span class="d-none d-md-inline-block ms-1">Filter</span>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="filterDropdown">
+                                <li><a class="dropdown-item" href="#" data-filter="all">All Documents</a></li>
+                                <li><a class="dropdown-item" href="#" data-filter="private">Private</a></li>
+                                <li><a class="dropdown-item" href="#" data-filter="shared">Shared</a></li>
+                                <li><a class="dropdown-item" href="#" data-filter="public">Public</a></li>
+                            </ul>
+                        </div>
+                        <div class="dropdown d-inline-block">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-sort"></i>
+                                <span class="d-none d-md-inline-block ms-1">Sort</span>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+                                <li><a class="dropdown-item" href="#" data-sort="newest">Newest First</a></li>
+                                <li><a class="dropdown-item" href="#" data-sort="oldest">Oldest First</a></li>
+                                <li><a class="dropdown-item" href="#" data-sort="name-asc">Name (A-Z)</a></li>
+                                <li><a class="dropdown-item" href="#" data-sort="name-desc">Name (Z-A)</a></li>
+                            </ul>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="loadDocuments()">
+                            <i class="fas fa-sync-alt"></i>
+                            <span class="d-none d-md-inline-block ms-1">Refresh</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-primary" id="fullPageUploadBtn">
+                            <i class="fas fa-upload"></i>
+                            <span class="d-none d-md-inline-block ms-1">Upload</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Search documents...">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Documents Grid -->
+                <div class="documents-container">
+                    <div class="row g-3" id="documentsGrid">
+                        <!-- Document cards will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Upload Modal -->
+    <div class="modal fade" id="uploadModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <div class="w-100 text-center">
+                        <i class="fas fa-cloud-upload-alt fa-3x mb-2 text-primary"></i>
+                        <h4 class="modal-title w-100">Upload a Document</h4>
+                        <p class="text-muted mb-0">Easily upload and securely store your important files.</p>
+                    </div>
+                    <button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body pt-0">
+                    <form id="uploadForm">
+                        <div class="upload-zone mb-4 p-4 rounded-3 border border-2 border-dashed text-center bg-light" id="dropZone">
+                            <i class="fas fa-file-upload fa-2x mb-2 text-secondary"></i>
+                            <p class="mb-2">Drag & drop your file here, or</p>
+                            <label class="btn btn-outline-primary">
+                                <input type="file" hidden>
+                                Choose File
+                            </label>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Document Title</label>
+                            <input type="text" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Access Level</label>
+                            <select class="form-select">
+                                <option value="private">Private</option>
+                                <option value="shared">Shared</option>
+                                <option value="public">Public</option>
+                            </select>
+                        </div>
+                        <div class="d-flex justify-content-end align-items-center gap-2 mt-4">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary d-flex align-items-center" id="uploadBtn">
+                                <span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true"></span>
+                                <i class="fas fa-upload me-2"></i>Upload
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal fade" id="profileModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Profile Settings</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <img src="images/default-avatar.svg" alt="Profile Picture" class="rounded-circle profile-picture mb-3" id="profileModalAvatar">
+                        <div>
+                            <label class="btn btn-outline-primary">
+                                <i class="fas fa-camera me-2"></i>Change Photo
+                                <input type="file" hidden accept="image/*">
+                            </label>
+                        </div>
+                    </div>
+                    <form id="profileForm">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="profileFirstName" value="John">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="profileLastName" value="Doe">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="profileEmail" value="john@example.com" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Aadhaar Number</label>
+                            <input type="text" class="form-control" id="profileAadhaar" value="123456789012" readonly>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Document Modal -->
+    <div class="modal fade" id="shareModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
+                <div class="modal-header border-0 bg-gradient" style="background: rgba(13, 148, 136, 0.05); border-radius: 1rem 1rem 0 0;">
+                    <div class="w-100 text-center position-relative">
+                        <h5 class="modal-title mb-0" style="color: #0d9488; font-weight: 600;">Share Document</h5>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="shareForm">
+                        <div class="mb-4">
+                            <label class="form-label" style="color: #0d9488; font-weight: 500;">Share with (Email)</label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="background: rgba(13, 148, 136, 0.05); border-color: #0d9488;">
+                                    <i class="fas fa-envelope" style="color: #0d9488;"></i>
+                                </span>
+                                <input type="email" class="form-control" placeholder="Enter email address" required
+                                    style="border-color: #0d9488;">
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label" style="color: #0d9488; font-weight: 500;">Access Level</label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="background: rgba(13, 148, 136, 0.05); border-color: #0d9488;">
+                                    <i class="fas fa-lock" style="color: #0d9488;"></i>
+                                </span>
+                                <select class="form-select" style="border-color: #0d9488;">
+                                    <option value="view">View Only</option>
+                                    <option value="edit">Can Edit</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label" style="color: #0d9488; font-weight: 500;">Message (Optional)</label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="background: rgba(13, 148, 136, 0.05); border-color: #0d9488;">
+                                    <i class="fas fa-message" style="color: #0d9488;"></i>
+                                </span>
+                                <textarea class="form-control" rows="3" placeholder="Add a message..."
+                                    style="border-color: #0d9488;"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0 justify-content-center gap-2 pb-4">
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal"
+                        style="border-width: 2px;">Cancel</button>
+                    <button type="button" class="btn btn-primary px-4" style="background: #0d9488; border: none;">
+                        <i class="fas fa-share-alt me-2"></i>Share Document
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="js/dashboard.js"></script>
+</body>
+</html> 

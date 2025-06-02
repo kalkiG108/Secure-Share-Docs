@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Document - SecureShare Docs</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- PDF.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf_viewer.min.css">
+    <style>
+        #pdfContainer {
+            width: 100%;
+            height: calc(100vh - 180px);
+            overflow: auto;
+            background: #f8f9fa;
+            margin-bottom: 20px;
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        #pdfContainer.loaded {
+            display: block;
+        }
+        .control-buttons {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            background: white;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+            z-index: 1000;
+        }
+        .control-buttons .btn {
+            min-width: 150px;
+            border-radius: 4px;
+        }
+        .back-to-dashboard {
+            color: #0d9488 !important;
+            border: 2px solid #0d9488 !important;
+            background-color: transparent !important;
+            transition: all 0.2s ease;
+            padding: 1.5rem 1.25rem;
+            font-weight: 500;
+
+        }
+        .back-to-dashboard:hover {
+            color: #fff !important;
+            background-color: #f97316 !important;
+            border-color: #f97316 !important;
+        }
+        .error-container {
+            display: none;
+            height: calc(100vh - 180px);
+        }
+        .error-container.show {
+            display: flex;
+        }
+        #loadingSpinner {
+            display: flex;
+            height: calc(100vh - 180px);
+        }
+        #pdfViewer {
+            display: inline-block;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            background: white;
+        }
+        .canvas-container {
+            display: inline-block;
+            margin: 0 auto;
+        }
+        /* Hide non-PDF elements when printing */
+        @media print {
+            nav, .control-buttons, #loadingSpinner, #errorContainer, #documentTitle {
+                display: none !important;
+            }
+            #pdfContainer {
+                height: auto;
+                overflow: visible;
+                padding: 0;
+                margin: 0;
+            }
+            #pdfViewer {
+                box-shadow: none;
+            }
+            .canvas-container {
+                page-break-inside: avoid;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="dashboard.html">
+                <i class="fas fa-shield-alt me-2"></i>SecureShare Docs
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <div id="documentTitle" class="h4 mb-4"></div>
+                
+                <!-- Loading Spinner -->
+                <div id="loadingSpinner" class="justify-content-center align-items-center">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="text-muted">Loading document...</p>
+                    </div>
+                </div>
+
+                <!-- Error Display -->
+                <div id="errorContainer" class="error-container justify-content-center align-items-center">
+                    <div class="text-center">
+                        <i class="fas fa-exclamation-circle text-danger fa-3x mb-3"></i>
+                        <h4 class="text-danger mb-3" id="errorMessage">Error loading document</h4>
+                        <button class="btn btn-primary" onclick="retryLoading()">
+                            <i class="fas fa-redo me-2"></i>Try Again
+                        </button>
+                    </div>
+                </div>
+
+                <!-- PDF Container -->
+                <div id="pdfContainer" class="rounded-3">
+                    <div id="pdfViewer"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Control Buttons -->
+    <div class="control-buttons">
+        <div class="container-fluid">
+            <div class="row justify-content-between align-items-center">
+                <div class="col">
+                    <button class="btn back-to-dashboard" onclick="window.history.back()">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </button>
+                </div>
+                <div class="col text-end">
+                    <button class="btn btn-primary" onclick="printDocument()">
+                        <i class="fas fa-print me-2"></i>Print Document
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF.js Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script>
+        // Initialize PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        // Get document ID from URL and validate
+        const urlParams = new URLSearchParams(window.location.search);
+        const documentId = urlParams.get('id');
+        console.log('Document ID from URL:', documentId);
+
+        // Show error
+        function showError(message) {
+            document.getElementById('loadingSpinner').style.display = 'none';
+            document.getElementById('pdfContainer').classList.remove('loaded');
+            document.getElementById('errorContainer').classList.add('show');
+            document.getElementById('errorMessage').textContent = message || 'Error loading document';
+        }
+
+        // Hide error
+        function hideError() {
+            document.getElementById('errorContainer').classList.remove('show');
+        }
+
+        // Retry loading
+        function retryLoading() {
+            loadDocument();
+        }
+
+        // Print document
+        async function printDocument() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) return;
+
+                // Fetch the PDF data
+                const response = await fetch(`/api/documents/view/${documentId}?token=${token}`);
+                if (!response.ok) throw new Error('Error loading PDF for print');
+
+                const pdfData = await response.arrayBuffer();
+                const blob = new Blob([pdfData], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+
+                // Open PDF in new window
+                const printWindow = window.open(url, '_blank');
+                if (printWindow) {
+                    // Don't auto-close the window, let user close it manually
+                    // Just clean up the URL object when window closes
+                    printWindow.addEventListener('beforeunload', () => {
+                        URL.revokeObjectURL(url);
+                    });
+                } else {
+                    // If popup blocked, try direct download
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = document.getElementById('documentTitle').textContent + '.pdf';
+                    link.click();
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                    showToast('Popup blocked. Downloading PDF instead.');
+                }
+            } catch (error) {
+                console.error('Print error:', error);
+                showError('Error printing document');
+            }
+        }
+
+        // Show toast message
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'position-fixed top-0 end-0 p-3';
+            toast.style.zIndex = '9999';
+            toast.innerHTML = `
+                <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                        <strong class="me-auto">Notification</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Load document
+        async function loadDocument() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                hideError();
+                document.getElementById('loadingSpinner').style.display = 'flex';
+                document.getElementById('pdfContainer').classList.remove('loaded');
+
+                // First fetch document details
+                const detailsResponse = await fetch(`/api/documents/details/${documentId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!detailsResponse.ok) {
+                    throw new Error('Error loading document details');
+                }
+
+                const doc = await detailsResponse.json();
+                document.getElementById('documentTitle').textContent = doc.title || 'Document';
+                document.title = `${doc.title || 'Document'} - SecureShare Docs`;
+
+                // Fetch the PDF
+                const pdfResponse = await fetch(`/api/documents/view/${documentId}?token=${token}`);
+                if (!pdfResponse.ok) {
+                    throw new Error('Error loading PDF file');
+                }
+
+                const pdfData = await pdfResponse.arrayBuffer();
+                
+                // Load the PDF using PDF.js
+                const loadingTask = pdfjsLib.getDocument({ data: pdfData });
+                const pdf = await loadingTask.promise;
+
+                // Clear previous content
+                const container = document.getElementById('pdfViewer');
+                container.innerHTML = '';
+
+                // Render all pages
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    
+                    // Calculate scale to fit width (assuming 1000px max width)
+                    const desiredWidth = Math.min(1000, window.innerWidth - 80);
+                    const viewport = page.getViewport({ scale: 1 });
+                    const scale = desiredWidth / viewport.width;
+                    const scaledViewport = page.getViewport({ scale });
+
+                    // Create canvas container for better centering
+                    const canvasContainer = document.createElement('div');
+                    canvasContainer.className = 'canvas-container';
+                    canvasContainer.style.marginBottom = '20px';
+
+                    // Prepare canvas
+                    const canvas = document.createElement('canvas');
+                    canvasContainer.appendChild(canvas);
+                    container.appendChild(canvasContainer);
+                    
+                    const context = canvas.getContext('2d');
+                    canvas.height = scaledViewport.height;
+                    canvas.width = scaledViewport.width;
+
+                    // Render PDF page
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: scaledViewport
+                    };
+
+                    await page.render(renderContext).promise;
+                }
+
+                // Show the PDF container
+                document.getElementById('loadingSpinner').style.display = 'none';
+                document.getElementById('pdfContainer').classList.add('loaded');
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError(error.message || 'Error loading document');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!documentId) {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+            loadDocument();
+        });
+    </script>
+</body>
+</html> 
